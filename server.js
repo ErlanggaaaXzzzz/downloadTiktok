@@ -1,5 +1,6 @@
 const express = require('express');
 const axios = require('axios');
+const cors = require('cors'); // Tambahan biar ga kena CORS bug di hostingan
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -12,8 +13,10 @@ let systemConfig = {
     totalHits: 0
 };
 
+// Middleware Setup
+app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
 
 function extractHashtags(text) {
     if (!text) return [];
@@ -129,7 +132,6 @@ app.post('/api/download', async (req, res) => {
         } 
         
         else if (targetEngine === 'instagram') {
-            // Menggunakan Endpoint Dinamis yang dapat diubah oleh Admin lewat Dashboard
             const response = await axios.get(`${systemConfig.instagramScraperUrl}?url=${encodeURIComponent(url)}`);
             const resData = response.data;
 
@@ -173,6 +175,10 @@ app.post('/api/download', async (req, res) => {
     }
 });
 
+// WAJIB UNTUK VERCEL: Export app Express agar terbaca sebagai Serverless Function
+module.exports = app;
+
+// Jalankan port secara lokal saat run via Termux (`node server.js`)
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`
     ==================================================
@@ -182,4 +188,3 @@ app.listen(PORT, '0.0.0.0', () => {
     ==================================================
     `);
 });
-  
